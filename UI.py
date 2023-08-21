@@ -24,7 +24,8 @@ class ImageViewer(QMainWindow):
         print("load finished")
 
         # 初始化当前行索引
-        self.current_row = 300
+        self.current_row = 0
+        self.load_current_row()
 
         # 显示第一张图片
         self.display_current_image()
@@ -128,6 +129,11 @@ class ImageViewer(QMainWindow):
             self.delete_image()
         elif key == QtCoreQt.Key_3:
             self.save_data()
+
+    def closeEvent(self, event):
+        self.save_current_row()
+        self.save_data()
+        event.accept()
 
 def main():
     app = QApplication(sys.argv)
