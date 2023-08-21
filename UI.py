@@ -1,3 +1,4 @@
+import json
 import sys
 import random
 import pandas as pd
@@ -18,13 +19,28 @@ class ImageViewer(QMainWindow):
         self.initUI()
 
         # 从Excel文件加载数据
-        self.load_data_from_excel("test.xlsx")
+        print("loading")
+        self.load_data_from_excel("save.xlsx")
+        print("load finished")
 
         # 初始化当前行索引
-        self.current_row = 0
+        self.current_row = 300
 
         # 显示第一张图片
         self.display_current_image()
+
+    def load_current_row(self):
+        try:
+            with open("config.json", "r") as f:
+                config = json.load(f)
+                self.current_row = config.get("current_row", 0)
+        except FileNotFoundError:
+            self.current_row = 300
+
+    def save_current_row(self):
+        config = {"current_row": self.current_row}
+        with open("config.json", "w") as f:
+            json.dump(config, f)
 
     def initUI(self):
         self.central_widget = QWidget()
@@ -57,9 +73,12 @@ class ImageViewer(QMainWindow):
 
     def load_data_from_excel(self, excel_file):
         self.df = pd.read_excel(excel_file)
+        self.len=len(self.df)
 
     def display_current_image(self):
-        if self.current_row < len(self.df):
+        if self.current_row < self.len:
+            self.save_current_row()
+            print("当前是第",self.current_row,"/",self.len,"张")
             image_url = self.df.iloc[self.current_row, 1]
             self.image_label.setPixmap(self.get_pixmap_from_url(image_url))
         else:
@@ -87,7 +106,7 @@ class ImageViewer(QMainWindow):
             return None
 
     def next_image(self):
-        self.current_row += 1
+        self.current_row += 30
         self.display_current_image()
 
     def delete_image(self):
@@ -103,9 +122,9 @@ class ImageViewer(QMainWindow):
 
     def key_press_event(self, event):
         key = event.key()
-        if key == QtCoreQt.Key_1:
+        if key == QtCoreQt.Key_Space:
             self.next_image()
-        elif key == QtCoreQt.Key_2:
+        elif key == QtCoreQt.Key_Enter or key == QtCoreQt.Key_Return:
             self.delete_image()
         elif key == QtCoreQt.Key_3:
             self.save_data()
