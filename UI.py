@@ -54,6 +54,10 @@ class ImageViewer(QMainWindow):
         self.image_label.setFixedSize(500, 800)  # 设置图像显示区域大小
         self.layout.addWidget(self.image_label)
 
+        self.text_label = QLabel()
+        self.text_label.setAlignment(Qt.AlignCenter)  # Align text label to center
+        self.layout.addWidget(self.text_label)
+
         self.button_layout = QVBoxLayout()
         self.layout.addLayout(self.button_layout)
 
@@ -81,7 +85,9 @@ class ImageViewer(QMainWindow):
             self.save_current_row()
             print("当前是第",self.current_row,"/",self.len,"张")
             image_url = self.df.iloc[self.current_row, 1]
+            text = self.df.iloc[self.current_row, 2]  # Get text from the 3rd column
             self.image_label.setPixmap(self.get_pixmap_from_url(image_url))
+            self.text_label.setText(text)
         else:
             self.image_label.clear()
 
@@ -109,10 +115,17 @@ class ImageViewer(QMainWindow):
     def next_image(self):
         self.current_row += 30
         self.display_current_image()
+    def last_image(self):
+        self.current_row -= 30
+        self.display_current_image()
 
     def delete_image(self):
         if self.current_row < len(self.df):
             self.df.drop(index=self.current_row, inplace=True)
+            self.df.drop(index=self.current_row+1, inplace=True)
+            self.df.drop(index=self.current_row + 2, inplace=True)
+            self.df.drop(index=self.current_row - 1, inplace=True)
+            self.df.drop(index=self.current_row - 2, inplace=True)
             self.df.reset_index(drop=True, inplace=True)
             self.display_current_image()
 
@@ -123,12 +136,14 @@ class ImageViewer(QMainWindow):
 
     def key_press_event(self, event):
         key = event.key()
-        if key == QtCoreQt.Key_Space:
+        if key == QtCoreQt.Key_Right:
             self.next_image()
         elif key == QtCoreQt.Key_Enter or key == QtCoreQt.Key_Return:
             self.delete_image()
         elif key == QtCoreQt.Key_3:
             self.save_data()
+        elif key == QtCoreQt.Key_Left:
+            self.last_image()
 
     def closeEvent(self, event):
         self.save_current_row()
