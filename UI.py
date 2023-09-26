@@ -1,18 +1,19 @@
 import json
 import sys
-import random
 import pandas as pd
+import requests
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt as QtCoreQt
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QFileDialog
-from PIL import Image
-import requests
-from PyQt5.QtCore import Qt as QtCoreQt
+
 
 class ImageViewer(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.len = None
+        self.df = None
         self.setWindowTitle("Image Viewer")
         self.setGeometry(100, 100, 1000, 800)  # 设置固定窗口大小
 
@@ -20,7 +21,8 @@ class ImageViewer(QMainWindow):
 
         # 从Excel文件加载数据
         print("loading")
-        self.load_data_from_excel("test.xlsx")
+        file_path, _ = QFileDialog.getOpenFileName(None, "", "打开文件", "Excel Files (*.xlsx)")
+        self.load_data_from_excel(file_path)
         print("load finished")
 
         # 初始化当前行索引
@@ -36,7 +38,7 @@ class ImageViewer(QMainWindow):
                 config = json.load(f)
                 self.current_row = config.get("current_row", 0)
         except FileNotFoundError:
-            self.current_row = config.get("current_row", 0) -30
+            self.current_row = config.get("current_row", 0) - 1
 
     def save_current_row(self):
         config = {"current_row": self.current_row}
@@ -78,12 +80,12 @@ class ImageViewer(QMainWindow):
 
     def load_data_from_excel(self, excel_file):
         self.df = pd.read_excel(excel_file)
-        self.len=len(self.df)
+        self.len = len(self.df)
 
     def display_current_image(self):
         if self.current_row < self.len:
             self.save_current_row()
-            print("当前是第",self.current_row,"/",self.len,"张")
+            print("当前是第", self.current_row + 1, "/", self.len, "张")
             image_url = self.df.iloc[self.current_row, 1]
             text = self.df.iloc[self.current_row, 2]  # Get text from the 3rd column
             self.image_label.setPixmap(self.get_pixmap_from_url(image_url))
@@ -114,17 +116,24 @@ class ImageViewer(QMainWindow):
 
     def next_image(self):
         self.current_row += 1
+        if self.current_row + 1 > self.len:
+            print("已完成")
+            self.save_data()
+
         self.display_current_image()
+
     def last_image(self):
         self.current_row -= 1
+        if self.current_row + 1 <= 0:
+            self.current_row = 0
         self.display_current_image()
 
     def delete_image(self):
-        if self.current_row < len(self.df):
+        if self.current_row < self.len:
             # self.df.drop(index=self.current_row, inplace=True)
             # self.df.reset_index(drop=True, inplace=True)
             self.df.at[self.current_row, 4] = True
-            self.current_row +=1
+            self.current_row += 1
             self.display_current_image()
 
     def save_data(self):
@@ -152,11 +161,13 @@ class ImageViewer(QMainWindow):
         self.save_data()
         event.accept()
 
+
 def main():
     app = QApplication(sys.argv)
     viewer = ImageViewer()
     viewer.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     main()
