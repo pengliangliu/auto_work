@@ -20,7 +20,7 @@ class ImageViewer(QMainWindow):
 
         # 从Excel文件加载数据
         print("loading")
-        self.load_data_from_excel("save.xlsx")
+        self.load_data_from_excel("test.xlsx")
         print("load finished")
 
         # 初始化当前行索引
@@ -36,7 +36,7 @@ class ImageViewer(QMainWindow):
                 config = json.load(f)
                 self.current_row = config.get("current_row", 0)
         except FileNotFoundError:
-            self.current_row = 300
+            self.current_row = config.get("current_row", 0) -30
 
     def save_current_row(self):
         config = {"current_row": self.current_row}
@@ -113,23 +113,25 @@ class ImageViewer(QMainWindow):
             return None
 
     def next_image(self):
-        self.current_row += 30
+        self.current_row += 1
         self.display_current_image()
     def last_image(self):
-        self.current_row -= 30
+        self.current_row -= 1
         self.display_current_image()
 
     def delete_image(self):
         if self.current_row < len(self.df):
-            self.df.drop(index=self.current_row, inplace=True)
-            self.df.drop(index=self.current_row+1, inplace=True)
-            self.df.drop(index=self.current_row + 2, inplace=True)
-            self.df.drop(index=self.current_row - 1, inplace=True)
-            self.df.drop(index=self.current_row - 2, inplace=True)
-            self.df.reset_index(drop=True, inplace=True)
+            # self.df.drop(index=self.current_row, inplace=True)
+            # self.df.reset_index(drop=True, inplace=True)
+            self.df.at[self.current_row, 4] = True
+            self.current_row +=1
             self.display_current_image()
 
     def save_data(self):
+
+        #  过滤掉第五列值为True的行,可以手动执行
+        # self.df = self.df[self.df.iloc[:, 4] != True]
+
         save_path, _ = QFileDialog.getSaveFileName(self, "保存 Excel 文件", "", "Excel Files (*.xlsx)")
         if save_path:
             self.df.to_excel(save_path, index=False)
