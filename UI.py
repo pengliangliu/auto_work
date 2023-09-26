@@ -111,6 +111,7 @@ class ImageViewer(QMainWindow):
                 print(f"无法从URL获取图像：{url}")
                 return None
         except Exception as e:
+            self.save_data()
             print(f"发生错误：{e}")
             return None
 
@@ -166,7 +167,11 @@ def main():
     app = QApplication(sys.argv)
     viewer = ImageViewer()
     viewer.show()
-    sys.exit(app.exec_())
+    try:
+        sys.exit(app.exec_())
+    except Exception as e:
+        print(f"发生错误: {e}")
+        viewer.save_data()
 
 
 if __name__ == "__main__":
