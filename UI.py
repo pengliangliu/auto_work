@@ -80,6 +80,7 @@ class ImageViewer(QMainWindow):
 
     def load_data_from_excel(self, excel_file):
         self.df = pd.read_excel(excel_file,header=None)
+
         self.len = len(self.df)
 
     def display_current_image(self):
