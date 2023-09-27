@@ -38,7 +38,7 @@ class ImageViewer(QMainWindow):
                 config = json.load(f)
                 self.current_row = config.get("current_row", 0)
         except FileNotFoundError:
-            self.current_row = config.get("current_row", 0) - 1
+            self.current_row = config.get("current_row", 0)
 
     def save_current_row(self):
         config = {"current_row": self.current_row}
@@ -79,7 +79,7 @@ class ImageViewer(QMainWindow):
         self.central_widget.keyPressEvent = self.key_press_event
 
     def load_data_from_excel(self, excel_file):
-        self.df = pd.read_excel(excel_file)
+        self.df = pd.read_excel(excel_file,header=None)
         self.len = len(self.df)
 
     def display_current_image(self):
@@ -116,12 +116,13 @@ class ImageViewer(QMainWindow):
             return None
 
     def next_image(self):
+        self.display_current_image()
         self.current_row += 1
         if self.current_row + 1 > self.len:
             print("已完成")
             self.save_data()
 
-        self.display_current_image()
+
 
     def last_image(self):
         self.current_row -= 1
